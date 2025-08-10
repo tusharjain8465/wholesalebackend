@@ -19,20 +19,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.wholesalesalesbackend.dto.ProfitAndSale;
 import com.example.wholesalesalesbackend.model.Client;
 import com.example.wholesalesalesbackend.model.SaleEntry;
 import com.example.wholesalesalesbackend.repository.SaleEntryRepository;
 import com.example.wholesalesalesbackend.service.ClientService;
 import com.example.wholesalesalesbackend.service.PdfService;
-import com.example.wholesalesalesbackend.service.SaleEntryService;
 
 @RestController
 @RequestMapping("/api/pdf")
 public class PdfController {
-
-    @Autowired(required = false)
-    private SaleEntryService saleEntryService;
 
     @Autowired(required = false)
     private PdfService pdfService;
@@ -47,15 +42,23 @@ public class PdfController {
     public ResponseEntity<byte[]> generateSalesPdf(
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime from,
-            @RequestParam(required = true) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime to,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime to,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime depositDatetime,
-            @RequestParam(required = false) Integer days,
+            @RequestParam(required = false, defaultValue = "0") Integer days,
             @RequestParam(required = false) Double oldBalance,
             @RequestParam(required = false, defaultValue = "0") Double depositAmount) throws IOException {
 
         boolean isAllClient = (clientId == null);
         String clientName;
         List<SaleEntry> sales = new ArrayList<>();
+        
+
+        if (to == null && from == null) {
+            from = LocalDateTime.now().minusDays(days);
+            to = LocalDateTime.now();
+
+        }
+
         LocalDate fromLocalDate = from.toLocalDate();
         LocalDate toLocalDate = to.toLocalDate();
 
